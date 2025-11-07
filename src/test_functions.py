@@ -2,10 +2,11 @@ import unittest
 
 from parentnode import ParentNode
 from textnode import TextNode, TextType
-from functions import text_node_to_html_node, split_nodes_delimiter
+from functions import *
 
 
 class TestFunctions(unittest.TestCase):
+    # TESTING text_node_to_html_node
     def test_text(self):
         node = TextNode("This is a text node", TextType.TEXT)
         html_node = text_node_to_html_node(node)
@@ -46,6 +47,7 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(html_node.props, {
                          "src": "www.example.com/image.png", "alt": "This is an image node"})
 
+    # TESTING split_nodes_delimiter
     def test_bold_split(self):
         node = TextNode("This is text with a **bold** word", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
@@ -100,6 +102,32 @@ class TestFunctions(unittest.TestCase):
 
         self.assertEqual(str(cm.exception),
                          "Invalid markdown syntax, unmatched: '**'")
+
+    # extract_markdown_images
+    def test_image_link_extraction(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        matches = extract_markdown_images(text)
+        expected_matches = [('rick roll', 'https://i.imgur.com/aKaOqIh.gif'),
+                            ('obi wan', 'https://i.imgur.com/fJRm4Vk.jpeg')]
+        self.assertEqual(matches, expected_matches)
+
+    def test_image_extraction_with_no_matches(self):
+        text = "This is text without images"
+        matches = extract_markdown_images(text)
+        self.assertEqual(matches, [])
+
+    # extract markdown links
+    def test_image_link_extraction(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        matches = extract_markdown_links(text)
+        expected_matches = [('to boot dev', 'https://www.boot.dev'),
+                            ('to youtube', 'https://www.youtube.com/@bootdotdev')]
+        self.assertEqual(matches, expected_matches)
+
+    def test_image_extraction_with_no_matches(self):
+        text = "This is text without links"
+        matches = extract_markdown_links(text)
+        self.assertEqual(matches, [])
 
 
 if __name__ == "__main__":
