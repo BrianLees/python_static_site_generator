@@ -290,5 +290,88 @@ This is another paragraph with _italic_ text and `code` here
             ],
         )
 
+    def test_blocktype_paragraph(self):
+        test_block = "This is **bolded** paragraph"
+        self.assertEqual(block_to_block_type(test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_paragraph_with_multiline(self):
+        test_block = "This\n # is\n```not code\n> or qoute\n- or unordered\n1. lists"
+        self.assertEqual(block_to_block_type(test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_heading(self):
+        test_block = "# This"
+        self.assertEqual(block_to_block_type(test_block), BlockType.HEADING)
+
+    def test_blocktype_middle_heading(self):
+        test_block = "### This"
+        self.assertEqual(block_to_block_type(test_block), BlockType.HEADING)
+
+    def test_blocktype_full_heading(self):
+        test_block = "###### This"
+        self.assertEqual(block_to_block_type(test_block), BlockType.HEADING)
+
+    def test_blocktype_no_match_on_heading(self):
+        test_block = "####### This"
+        self.assertEqual(block_to_block_type(test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_no_match_on_heading_without_space(self):
+        test_block = "######This"
+        self.assertEqual(block_to_block_type(test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_code(self):
+        test_block = "``` SOme code\nentered over\nseveral lines\n```"
+        self.assertEqual(block_to_block_type(test_block), BlockType.CODE)
+
+    def test_blocktype_code_no_closing(self):
+        test_block = "``` SOme code\nentered over\nseveral lines"
+        self.assertEqual(block_to_block_type(test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_code_wrong_start(self):
+        test_block = "`` SOme code\nentered over\nseveral lines\n```"
+        self.assertEqual(block_to_block_type(test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_quote(self):
+        test_block = "> some code\n> entered over\n> several lines\n"
+        self.assertEqual(block_to_block_type(test_block), BlockType.QUOTE)
+
+    def test_blocktype_quote_missing_symbol(self):
+        test_block = "> some code\nentered over\n> several lines\n"
+        self.assertEqual(block_to_block_type(test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_unordered_list(self):
+        test_block = "- some code\n- entered over\n- several lines\n"
+        self.assertEqual(block_to_block_type(
+            test_block), BlockType.UNORDERED_LIST)
+
+    def test_blocktype_unordered_list_missing_space(self):
+        test_block = "- some code\n- entered over\n-several lines\n"
+        self.assertEqual(block_to_block_type(
+            test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_unordered_list_but_start_with_space(self):
+        test_block = " - some code\n - entered over\n - several lines\n"
+        self.assertEqual(block_to_block_type(
+            test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_ordered_list(self):
+        test_block = "1. some code\n2. entered over\n3. several lines\n"
+        self.assertEqual(block_to_block_type(
+            test_block), BlockType.ORDERED_LIST)
+
+    def test_blocktype_ordered_list_missing_spaces(self):
+        test_block = "1.some code\n2.entered over\n3.several lines\n"
+        self.assertEqual(block_to_block_type(
+            test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_ordered_list_missing_one_line(self):
+        test_block = "1.some code\n2.entered over\nseveral lines\n"
+        self.assertEqual(block_to_block_type(
+            test_block), BlockType.PARAGRAPH)
+
+    def test_blocktype_ordered_list_wrong_order(self):
+        test_block = "1. some code\n2. entered over\n2. several lines\n"
+        self.assertEqual(block_to_block_type(
+            test_block), BlockType.PARAGRAPH)
+
     if __name__ == "__main__":
         unittest.main()

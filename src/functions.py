@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 from textnode import TextNode, TextType
 from leafnode import LeafNode
 
@@ -118,3 +119,43 @@ def markdown_to_blocks(markdown):
         if len(line) > 0:
             final_blocks.append(line.strip())
     return final_blocks
+
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
+
+
+def block_to_block_type(markdown):
+    if re.match(r"^#{1,6} ", markdown):
+        return BlockType.HEADING
+    if re.match(r"^```[\s\S]*?```$", markdown):
+        return BlockType.CODE
+
+    starts_with_quote = True
+    starts_with_unordered = True
+    starts_with_ordered = True
+    counter = 1
+    for line in markdown.splitlines():
+        if not (starts_with_ordered or starts_with_quote or starts_with_unordered):
+            break
+        if not re.match(r"^>", line):
+            starts_with_quote = False
+        if not re.match(r"^- ", line):
+            starts_with_unordered = False
+        if not re.match(rf"^{counter}\. ", line):
+            starts_with_ordered = False
+        counter += 1
+
+    if starts_with_quote:
+        return BlockType.QUOTE
+    if starts_with_unordered:
+        return BlockType.UNORDERED_LIST
+    if starts_with_ordered:
+        return BlockType.ORDERED_LIST
+
+    return BlockType.PARAGRAPH
