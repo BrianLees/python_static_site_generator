@@ -1,9 +1,8 @@
-from textnode import TextNode
+from filefunctions import copy_static_to_public
 
 
 def main():
-    text = TextNode("the hardest word", "text", "example.com")
-    print(text)
+    copy_static_to_public("static", "public")
 
 
 main()
