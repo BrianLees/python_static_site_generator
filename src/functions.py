@@ -2,6 +2,8 @@ import re
 from enum import Enum
 from textnode import TextNode, TextType
 from leafnode import LeafNode
+from parentnode import ParentNode
+from htmlnode import HtmlNode
 
 
 def text_node_to_html_node(text_node):
@@ -122,12 +124,12 @@ def markdown_to_blocks(markdown):
 
 
 class BlockType(Enum):
-    PARAGRAPH = "paragraph"
-    HEADING = "heading"
+    PARAGRAPH = "p"
+    HEADING = "h"
     CODE = "code"
-    QUOTE = "quote"
-    UNORDERED_LIST = "unordered_list"
-    ORDERED_LIST = "ordered_list"
+    QUOTE = "blockquote"
+    UNORDERED_LIST = "ul"
+    ORDERED_LIST = "ol"
 
 
 def block_to_block_type(markdown):
@@ -159,3 +161,84 @@ def block_to_block_type(markdown):
         return BlockType.ORDERED_LIST
 
     return BlockType.PARAGRAPH
+
+
+def markdown_to_html_node(markdown):
+    html_nodes = []
+    blocks = markdown_to_blocks(markdown)
+    # print(f"All of the blocks: {blocks}")
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        if block_type == BlockType.CODE:
+            children = text_to_code(block)
+            code_node = ParentNode(block_type.value, children)
+            html_nodes.append(ParentNode("pre", [code_node]))
+        elif block_type == BlockType.QUOTE:
+            children = text_to_quote(block)
+            html_nodes.append(ParentNode(block_type.value, children))
+        elif block_type == BlockType.UNORDERED_LIST:
+            children = text_to_unordered_list(block)
+            html_nodes.append(ParentNode(block_type.value, children))
+        elif block_type == BlockType.ORDERED_LIST:
+            children = text_to_ordered_list(block)
+            html_nodes.append(ParentNode(block_type.value, children))
+        elif block_type == BlockType.HEADING:
+            heading_size, heading_text = text_to_heading(block)
+            html_nodes.append(
+                LeafNode(f"{block_type.value}{heading_size}", heading_text))
+        else:
+            children = text_to_children(block)
+            html_nodes.append(ParentNode(block_type.value, children))
+    html_doc = ParentNode("div", html_nodes)
+    # print(f"Full structure:\n {html_doc}")
+    # print(f"Output:\n{repr(html_doc.to_html())}")
+    return html_doc
+
+
+def text_to_children(text):
+    html_nodes = []
+    nodes = text_to_textnodes(text.replace("\n", " "))
+    for node in nodes:
+        created_node = text_node_to_html_node(node)
+        html_nodes.append(created_node)
+    return html_nodes
+
+
+def text_to_code(text):
+    cleaned_text = text.replace("```", "").lstrip()
+    text_node = text_node_to_html_node(TextNode(cleaned_text, TextType.TEXT))
+    return [text_node]
+
+
+def text_to_quote(text):
+    cleaned_text = text.replace("> ", "")
+    text_node = text_node_to_html_node(TextNode(cleaned_text, TextType.TEXT))
+    return [text_node]
+
+
+def text_to_unordered_list(text):
+    list_nodes = []
+    for line in text.splitlines():
+        cleaned_text = line.replace("- ", "")
+        list_nodes.append(LeafNode("li", cleaned_text))
+    return list_nodes
+
+
+def text_to_ordered_list(text):
+    list_nodes = []
+    for line in text.splitlines():
+        cleaned_text = line[3:]
+        list_nodes.append(LeafNode("li", cleaned_text))
+    return list_nodes
+
+
+def text_to_heading(text):
+    cleaned_text = ""
+    counter = 0
+    for ch in text:
+        if ch == "#":
+            counter += 1
+        else:
+            cleaned_text += ch
+
+    return counter, cleaned_text.lstrip()
