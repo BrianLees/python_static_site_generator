@@ -42,7 +42,7 @@ class TestHTMLNode(unittest.TestCase):
         node2 = HtmlNode(children=[HtmlNode("a", "Just a link")])
         self.assertNotEqual(node, node2)
 
-    def test_eq_functions_properly_on_children(self):
+    def test_eq_functions_properly_on_children_props(self):
         node = HtmlNode(props={"href": "http://www.example.com"})
         node2 = HtmlNode(props={"href": "http://www.example.com/login"})
         self.assertNotEqual(node, node2)

@@ -104,7 +104,7 @@ class TestFunctions(unittest.TestCase):
                          "Invalid markdown syntax, unmatched: '**'")
 
     # extract_markdown_images
-    def test_image_link_extraction(self):
+    def test_image_images_extraction(self):
         text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
         matches = extract_markdown_images(text)
         expected_matches = [('rick roll', 'https://i.imgur.com/aKaOqIh.gif'),
@@ -124,7 +124,7 @@ class TestFunctions(unittest.TestCase):
                             ('to youtube', 'https://www.youtube.com/@bootdotdev')]
         self.assertEqual(matches, expected_matches)
 
-    def test_image_extraction_with_no_matches(self):
+    def test_link_extraction_with_no_matches(self):
         text = "This is text without links"
         matches = extract_markdown_links(text)
         self.assertEqual(matches, [])
@@ -270,7 +270,7 @@ This is the same paragraph on a new line
             ],
         )
 
-    def test_markdown_to_blocks(self):
+    def test_markdown_to_blocks_extra_spaces(self):
         md = """
 This is **bolded** paragraph
 
