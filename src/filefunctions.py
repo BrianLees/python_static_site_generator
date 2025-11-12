@@ -1,68 +1,38 @@
-from __future__ import annotations
-import logging
 import os
 from pathlib import Path
 import shutil
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s %(message)s"
-)
+
+def delete_public_dir():
+    if os.path.exists("public"):
+        print("Removing 'public/' directory.")
+        shutil.rmtree("public", ignore_errors=True)
 
 
-def delete_dir_contents(path):
-    """Delete all files/subdirectories inside public"""
-    if not path.exists():
-        return
-    for child in path.iterdir():
-        if child.is_dir():
-            shutil.rmtree(child)   # removes dir tree
+def copy_file_to_public(source, destination):
+    print(f"Scanning '{source}'...")
+    contents = os.listdir(source)
+    if not os.path.exists(destination):
+        print(f"Creating '{destination}' directory.")
+        os.mkdir(destination)
+    for item in contents:
+        item_path = f"{source}/{item}"
+        print(f"Processing '{item_path}'...")
+        if os.path.isdir(item_path):
+            new_source = item_path
+            new_destination = f"{destination}/{item}"
+            copy_file_to_public(new_source, new_destination)
+        elif os.path.isfile(item_path):
+            print(f"Copying '{item_path}' to '{destination}/{item}'")
+            shutil.copy(item_path, f"{destination}/{item}")
         else:
-            child.unlink()         # removes file
+            print(f"{item_path}: Showing as neither a file or a directory")
 
 
-def copy_tree(src, dst):
-    """
-    Recursively copy the contents of `src` into `dst`, creating directories as needed.
-    Logs each file copied.
-    """
-    for item in src.iterdir():
-        target = dst / item.name
-        if item.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-            copy_tree(item, target)  # recurse
-        else:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item, target)  # preserves mtime/metadata
-            logging.info("Copied: %s -> %s", item, target)
-
-
-def copy_static_to_public(src_dir="static", dst_dir="public"):
-    """
-    Deletes all contents of `dst_dir`, then copies everything from `src_dir` into it.
-    Example: copy_static_to_public('static', 'public')
-    """
-    src = Path(src_dir).resolve()
-    dst = Path(dst_dir).resolve()
-
-    if not src.exists() or not src.is_dir():
-        raise ValueError(
-            f"Source directory does not exist or is not a directory: {src}")
-
-    # Guard: never let src and dst be the same directory
-    if src == dst:
-        raise ValueError(
-            "Source and destination directories must be different.")
-
-    # Ensure destination exists, then clear its contents
-    dst.mkdir(parents=True, exist_ok=True)
-    logging.info("Cleaning destination: %s", dst)
-    delete_dir_contents(dst)
-
-    # Copy recursively
-    logging.info("Copying from %s to %s", src, dst)
-    copy_tree(src, dst)
-    logging.info("Done.")
+def copy_static_to_public():
+    delete_public_dir()
+    os.mkdir("public")
+    copy_file_to_public("static", "public")
 
 
 if __name__ == "__main__":
