@@ -425,7 +425,7 @@ This is a paragraph and a quote
         md = """
 This is a paragraph and a list
 
-- an item
+- an **item**
 - another item
 """
 
@@ -433,14 +433,14 @@ This is a paragraph and a list
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><p>This is a paragraph and a list</p><ul><li>an item</li><li>another item</li></ul></div>"
+            "<div><p>This is a paragraph and a list</p><ul><li>an <b>item</b></li><li>another item</li></ul></div>"
         )
 
     def test_ordered_list(self):
         md = """
 This is a paragraph and a list
 
-1. first item
+1. first _item_
 2. second item
 """
 
@@ -448,7 +448,7 @@ This is a paragraph and a list
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><p>This is a paragraph and a list</p><ol><li>first item</li><li>second item</li></ol></div>"
+            "<div><p>This is a paragraph and a list</p><ol><li>first <i>item</i></li><li>second item</li></ol></div>"
         )
 
     def test_headings(self):
@@ -472,6 +472,22 @@ This is a paragraph and a list
             html,
             "<div><h1>Heading 1</h1><h2>Heading 2</h2><h3>Heading 3</h3><h4>Heading 4</h4><h5>Heading 5</h5><h6>Heading 6</h6></div>"
         )
+
+    def test_extract_title(self):
+        markdown = "# Special title"
+        title = extract_title(markdown)
+        self.assertEqual(title, "Special title")
+
+    def test_extract_title_extra_whitespace(self):
+        markdown = "#   Special title    "
+        title = extract_title(markdown)
+        self.assertEqual(title, "Special title")
+
+    def test_extract_title_no_heading(self):
+        with self.assertRaises(Exception) as context:
+            extract_title("### Special title")
+        self.assertEqual(str(context.exception),
+                         "Markdown file does not contain a title")
 
     if __name__ == "__main__":
         unittest.main()

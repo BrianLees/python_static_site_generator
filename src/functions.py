@@ -1,4 +1,5 @@
 import re
+import os
 from enum import Enum
 from textnode import TextNode, TextType
 from leafnode import LeafNode
@@ -220,7 +221,8 @@ def text_to_unordered_list(text):
     list_nodes = []
     for line in text.splitlines():
         cleaned_text = line.replace("- ", "")
-        list_nodes.append(LeafNode("li", cleaned_text))
+        children = text_to_children(cleaned_text)
+        list_nodes.append(ParentNode("li", children))
     return list_nodes
 
 
@@ -228,7 +230,8 @@ def text_to_ordered_list(text):
     list_nodes = []
     for line in text.splitlines():
         cleaned_text = line[3:]
-        list_nodes.append(LeafNode("li", cleaned_text))
+        children = text_to_children(cleaned_text)
+        list_nodes.append(ParentNode("li", children))
     return list_nodes
 
 
@@ -242,3 +245,39 @@ def text_to_heading(text):
             cleaned_text += ch
 
     return counter, cleaned_text.lstrip()
+
+
+def extract_title(markdown):
+    for line in markdown.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    raise Exception("Markdown file does not contain a title")
+
+
+def generate_page(from_path, template_path, destination_path):
+    print(
+        f"Generating Markdown from {from_path} to {destination_path} using {template_path}")
+    markdown = get_file_contents(from_path)
+    template = get_file_contents(template_path)
+
+    html_object = markdown_to_html_node(markdown)
+    html_string = html_object.to_html()
+    title = extract_title(markdown)
+
+    template_with_title = template.replace("{{ Title }}", title)
+    template_with_content = template_with_title.replace(
+        "{{ Content }}", html_string)
+
+    destination_dir = os.path.dirname(destination_path)
+    if not os.path.exists(destination_dir):
+        os.makedirs(destination_dir)
+    with open(destination_path, "w") as new_file:
+        new_file.write(template_with_content)
+
+    print("...Markdown generation completed.")
+    return False
+
+
+def get_file_contents(file):
+    file = open(file)
+    return file.read()
