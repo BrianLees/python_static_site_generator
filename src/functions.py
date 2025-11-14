@@ -254,7 +254,7 @@ def extract_title(markdown):
     raise Exception("Markdown file does not contain a title")
 
 
-def generate_page(from_path, template_path, destination_path):
+def generate_page(from_path, template_path, destination_path, basepath):
     print(
         f"Generating Markdown from {from_path} to {destination_path} using {template_path}")
     markdown = get_file_contents(from_path)
@@ -267,12 +267,16 @@ def generate_page(from_path, template_path, destination_path):
     template_with_title = template.replace("{{ Title }}", title)
     template_with_content = template_with_title.replace(
         "{{ Content }}", html_string)
+    template_with_basepath_html = template_with_content.replace(
+        'href="/', f'href="{basepath}')
+    template_with_basepath_src = template_with_basepath_html.replace(
+        'src="/', f'src="{basepath}')
 
     destination_dir = os.path.dirname(destination_path)
     if not os.path.exists(destination_dir):
         os.makedirs(destination_dir)
     with open(destination_path, "w") as new_file:
-        new_file.write(template_with_content)
+        new_file.write(template_with_basepath_src)
 
     print("...Markdown generation completed.")
     return False
@@ -283,14 +287,14 @@ def get_file_contents(file):
     return file.read()
 
 
-def generate_pages_recursively(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursively(dir_path_content, template_path, dest_dir_path, basepath):
     for item in os.listdir(dir_path_content):
         item_name = os.path.join(dir_path_content, item)
         destination_name = os.path.join(dest_dir_path, item)
 
         if os.path.isfile(item_name) and item[-3:] == ".md":
             new_file = destination_name.replace(".md", ".html")
-            generate_page(item_name, template_path, new_file)
+            generate_page(item_name, template_path, new_file, basepath)
         elif os.path.isdir(item_name):
             generate_pages_recursively(
-                item_name, template_path, destination_name)
+                item_name, template_path, destination_name, basepath)
