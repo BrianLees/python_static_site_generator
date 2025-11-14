@@ -3,9 +3,9 @@ import shutil
 
 
 def delete_public_dir():
-    if os.path.exists("public"):
-        print("Removing 'public/' directory.")
-        shutil.rmtree("public", ignore_errors=True)
+    if os.path.exists("docs"):
+        print("Removing 'docs/' directory.")
+        shutil.rmtree("docs", ignore_errors=True)
 
 
 def copy_file_to_public(source, destination):
@@ -30,8 +30,8 @@ def copy_file_to_public(source, destination):
 
 def copy_static_to_public():
     delete_public_dir()
-    os.mkdir("public")
-    copy_file_to_public("static", "public")
+    os.mkdir("docs")
+    copy_file_to_public("static", "docs")
 
 
 if __name__ == "__main__":
